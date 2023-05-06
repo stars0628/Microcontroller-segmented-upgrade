@@ -1,23 +1,23 @@
 #include "Segmented_IAP.h"
 #include "string.h"
 
-//ÓĞ¹Ø´®¿ÚºÍIAPµÄÍ·ÎÄ¼ş
+//æœ‰å…³ä¸²å£å’ŒIAPçš„å¤´æ–‡ä»¶
 
 
 
-//·Ö¶ÎIAPÏà¹ØÖµ³õÊ¼»¯
-App_Upgrade_Package_Data bin_message = { // binÎÄ¼şĞÅÏ¢
+//åˆ†æ®µIAPç›¸å…³å€¼åˆå§‹åŒ–
+App_Upgrade_Package_Data bin_message = { // binæ–‡ä»¶ä¿¡æ¯
     .bin_write_flash_addr = FLASH_APP1_ADDR,
     .other_message_length = OTHER_LENGTH
 };
 
-Serial_Port_Data_Information serial_message = {0}; // ´®¿Ú½ÓÊÕĞÅÏ¢
+Serial_Port_Data_Information serial_message = {0}; // ä¸²å£æ¥æ”¶ä¿¡æ¯
 
-Iap_Flag iap_flag = {0};//±êÖ¾ĞÅÏ¢
+Iap_Flag iap_flag = {0};//æ ‡å¿—ä¿¡æ¯
 
-//////-------------Modbus CRC16Ğ£Ñé------------------------------////
-// ÏÂÎ»»ú½¨ÒéÊ¹ÓÃ²é±í·¨£¬²é±í·¨ÊÇÒÔ¿Õ¼ä»»Ê±¼ä£¬ËÙ¶È½Ï¿ì
-// ½«²é±íµÄÊı×éÀàĞÍ¶¨ÒåÎªconst£¬´æ·ÅÔÚFlashÖĞ£¬ÔËĞĞÊ±²»Õ¼ÓÃRAM¡£
+//////-------------Modbus CRC16æ ¡éªŒ------------------------------////
+// ä¸‹ä½æœºå»ºè®®ä½¿ç”¨æŸ¥è¡¨æ³•ï¼ŒæŸ¥è¡¨æ³•æ˜¯ä»¥ç©ºé—´æ¢æ—¶é—´ï¼Œé€Ÿåº¦è¾ƒå¿«
+// å°†æŸ¥è¡¨çš„æ•°ç»„ç±»å‹å®šä¹‰ä¸ºconstï¼Œå­˜æ”¾åœ¨Flashä¸­ï¼Œè¿è¡Œæ—¶ä¸å ç”¨RAMã€‚
 const static unsigned char auchCRCHi[] = {
     0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0,
     0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41,
@@ -75,7 +75,7 @@ static const char auchCRCLo[] = {
     0x43, 0x83, 0x41, 0x81, 0x80, 0x40
 };
 
-// crc16Ğ£Ñé
+// crc16æ ¡éªŒ
 uint16_t CRC16(uint8_t *puchMsg, uint16_t usDataLen)
 {
     unsigned char uchCRCHi = 0xFF; /* high byte of CRC initialized */
@@ -87,21 +87,21 @@ uint16_t CRC16(uint8_t *puchMsg, uint16_t usDataLen)
         uchCRCLo = uchCRCHi ^ auchCRCHi[uIndex];
         uchCRCHi = auchCRCLo[uIndex];
     }
-    // ¸ù¾İĞèÒª¶ÔĞ£ÑéÖµ´¦Àí£¨¸ßµÍÎ»²»Í¬£©
-    return (uchCRCLo << 8 | uchCRCHi); // µÍÎ»ÔÚ×ó¸ßÎ»ÔÚÓÒ
-    // return (uchCRCHi << 8 | uchCRCLo) ;//¸ßÎ»ÔÚ×óµÍÎ»ÔÚÓÒ
+    // æ ¹æ®éœ€è¦å¯¹æ ¡éªŒå€¼å¤„ç†ï¼ˆé«˜ä½ä½ä¸åŒï¼‰
+    return (uchCRCLo << 8 | uchCRCHi); // ä½ä½åœ¨å·¦é«˜ä½åœ¨å³
+    // return (uchCRCHi << 8 | uchCRCLo) ;//é«˜ä½åœ¨å·¦ä½ä½åœ¨å³
 }
 
-// ÃüÁî»òbinÎÄ¼şÅĞ¶Ï²¢´¦ÀíµÄ¼òµ¥ÊµÏÖ
- #error ¿ÉÒÔ½«´Ëº¯Êı·ÅÔÚ´®¿Ú½ÓÊÕÖĞ¶ÏÖĞ»ò±£Ö¤´®¿Ú½ÓÊÜÍêÍêÕûÊı¾İºóÔËĞĞ£¬½¨ÒéÊ¹ÓÃDMA´®¿Ú
+// å‘½ä»¤æˆ–binæ–‡ä»¶åˆ¤æ–­å¹¶å¤„ç†çš„ç®€å•å®ç°
+ #error å¯ä»¥å°†æ­¤å‡½æ•°æ”¾åœ¨ä¸²å£æ¥æ”¶ä¸­æ–­ä¸­æˆ–ä¿è¯ä¸²å£æ¥å—å®Œå®Œæ•´æ•°æ®åè¿è¡Œï¼Œå»ºè®®ä½¿ç”¨DMAä¸²å£
 void cmd_or_data_deal(uint8_t *serial_data, uint32_t length)
 {
-    uint16_t crc_get = serial_data[length - 2] << 8 | serial_data[length - 1]; // ´®¿Ú»ñµÃµÄcrc
-    uint16_t crc_16 = CRC16(serial_data, length - 2);                          // ¼ÆËã³öµÄcrc
+    uint16_t crc_get = serial_data[length - 2] << 8 | serial_data[length - 1]; // ä¸²å£è·å¾—çš„crc
+    uint16_t crc_16 = CRC16(serial_data, length - 2);                          // è®¡ç®—å‡ºçš„crc
     if (crc_16 == crc_get) {
-        if (serial_data[0] == 0x0a && serial_data[1] == 0x0b && serial_data[length - 4] == 0xb0 && serial_data[length - 3] == 0xa0) { // Ö¡Í·Îª0a 0bÖ¡Î²Îªa0 b0Ôò¶¨ÒåÎªÃüÁîÄ£Ê½£¬µÚ¶ş¸öÊı¾İÎª¹¦ÄÜÂë
+        if (serial_data[0] == 0x0a && serial_data[1] == 0x0b && serial_data[length - 4] == 0xb0 && serial_data[length - 3] == 0xa0) { // å¸§å¤´ä¸º0a 0bå¸§å°¾ä¸ºa0 b0åˆ™å®šä¹‰ä¸ºå‘½ä»¤æ¨¡å¼ï¼Œç¬¬äºŒä¸ªæ•°æ®ä¸ºåŠŸèƒ½ç 
 
-            //½«ÓĞ¹ØIAP¼Ä´æÆ÷ÖØĞÂ³õÊ¼»¯²¢¸³Öµ
+            //å°†æœ‰å…³IAPå¯„å­˜å™¨é‡æ–°åˆå§‹åŒ–å¹¶èµ‹å€¼
             memset(&bin_message,0,sizeof(App_Upgrade_Package_Data));
             memset(&serial_message,0,sizeof(Serial_Port_Data_Information));
             memset(&iap_flag,0,sizeof(Iap_Flag));
@@ -109,42 +109,42 @@ void cmd_or_data_deal(uint8_t *serial_data, uint32_t length)
             bin_message.other_message_length = OTHER_LENGTH;
 
             switch (serial_data[2]) {
-            case 0x11: // ¹¦ÄÜÂë11
-                bin_message.bin_num = (serial_data[3] << 8) | serial_data[4];//»ñÈ¡binÊıÁ¿
+            case 0x11: // åŠŸèƒ½ç 11
+                bin_message.bin_num = (serial_data[3] << 8) | serial_data[4];//è·å–binæ•°é‡
                 iap_flag.star_flag = 1;
 
-#error ÏòÉÏÎ»»úÇëÇó¿ªÊ¼´«Êäbin ·¢ËÍ0a 0b 01 b0 a0£¬Ò²¿ÉÍêÉÆÏà¹Ø´úÂë
+#error å‘ä¸Šä½æœºè¯·æ±‚å¼€å§‹ä¼ è¾“bin å‘é€0a 0b 01 b0 a0ï¼Œä¹Ÿå¯å®Œå–„ç›¸å…³ä»£ç 
 
                 break;
-            case 0x00: // ¹¦ÄÜÂë00
+            case 0x00: // åŠŸèƒ½ç 00
                 iap_flag.star_flag = 0;
                 bin_message.bin_write_flash_addr = FLASH_APP1_ADDR;
 
-#error ¿ÉÍêÉÆÏà¹Ø´úÂë
+#error å¯å®Œå–„ç›¸å…³ä»£ç 
 
                 break;
             }
-        } else { // ·ñÔòÈÏÎª´«ÊäµÄÊÇbin
+        } else { // å¦åˆ™è®¤ä¸ºä¼ è¾“çš„æ˜¯bin
             Transmission_and_Upgrade(serial_data, length);
         }
     } else {
     }
 }
 
-#error ´Ëº¯Êı¿Éµ¥¶ÀÊ¹ÓÃ£¬Ó¦·ÅÔÚ´®¿Ú½ÓÊÕÖĞ¶ÏÖĞ»ò±£Ö¤´®¿Ú½ÓÊÜÍêÍêÕûÊı¾İºóÔËĞĞ
-void Transmission_and_Upgrade(uint8_t *serial_data, uint32_t length) // ´«Èë´®¿ÚÊÕµ½µÄÊı¾İºÍ³¤¶È
+#error ä¿è¯ä¸²å£æ¥å—å®Œå®Œæ•´æ•°æ®åè¿è¡Œï¼Œè¦ä¿è¯åœ¨å¤„ç†binæ•°æ®æ—¶æ‰è°ƒç”¨
+void Transmission_and_Upgrade(uint8_t *serial_data, uint32_t length) // ä¼ å…¥ä¸²å£æ”¶åˆ°çš„æ•°æ®å’Œé•¿åº¦
 {
-    uint16_t data_crc = 0;        // ÊÕµ½µÄÊı¾İ¼ÆËãĞ£ÑéÖµ
-    uint32_t bin_data_length = 0; // Ò»¶ÎÊı¾İÖĞÕæÊµÓĞĞ§µÄbinÎÄ¼ş³¤¶È
+    uint16_t data_crc = 0;        // æ”¶åˆ°çš„æ•°æ®è®¡ç®—æ ¡éªŒå€¼
+    uint32_t bin_data_length = 0; // ä¸€æ®µæ•°æ®ä¸­çœŸå®æœ‰æ•ˆçš„binæ–‡ä»¶é•¿åº¦
 
     if (length && iap_flag.star_flag == 1) {
         serial_message.bin_get_length = length;
         length = 0;
         bin_message.bin_crc = serial_data[serial_message.bin_get_length - 2] << 8 | serial_data[serial_message.bin_get_length - 1];
         data_crc = CRC16(serial_data, serial_message.bin_get_length - 2);
-        if (bin_message.bin_crc != data_crc) { // ¼ÆËã³öµÄĞ£ÑéÖµÓë»ñµÃµÄĞ£ÑéÖµ²»Í¬£¬ÖØĞÂÇëÇóÊı¾İ
+        if (bin_message.bin_crc != data_crc) { // è®¡ç®—å‡ºçš„æ ¡éªŒå€¼ä¸è·å¾—çš„æ ¡éªŒå€¼ä¸åŒï¼Œé‡æ–°è¯·æ±‚æ•°æ®
 
-             #error Í¨¹ı´®¿ÚÏòÈí¼ş·¢ËÍĞÅºÅÇëÇóÖØ·¢±¾¶ÎÊı¾İ
+             #error é€šè¿‡ä¸²å£å‘è½¯ä»¶å‘é€ä¿¡å·è¯·æ±‚é‡å‘æœ¬æ®µæ•°æ®
 
 
         } else {
@@ -153,29 +153,29 @@ void Transmission_and_Upgrade(uint8_t *serial_data, uint32_t length) // ´«Èë´®¿Ú
         }
     }
 
-    /* ½ÓÊÕÊı¾İÍê±Ï£¬Ğ´ÈëFlash */
+    /* æ¥æ”¶æ•°æ®å®Œæ¯•ï¼Œå†™å…¥Flash */
     if (iap_flag.receive_bin_segment_done) {
         iap_flag.receive_bin_segment_done = 0;
         bin_data_length = serial_message.bin_get_length - bin_message.other_message_length;
         serial_message.bin_get_totle_length += bin_data_length;
 
-        #error ÔÚ´Ë´¦Ìí¼Ó¶Ôflash²Ù×÷µÄº¯Êı(´«Èë²ÎÊıÓ¦ÓĞÈı¸ö£¬µØÖ·£¬Êı¾İ°ü£¬bin³¤¶È)
-        //MID_FLASH_E2P_Write(bin_message.bin_write_flash_addr, serial_data, bin_data_length); // ½«½ÓÊÕµ½µÄÉı¼¶ÎÄ¼şĞ´Èëµ½FlashµÄº¯Êı
+        #error åœ¨æ­¤å¤„æ·»åŠ å¯¹flashæ“ä½œçš„å‡½æ•°(ä¼ å…¥å‚æ•°åº”æœ‰ä¸‰ä¸ªï¼Œåœ°å€ï¼Œæ•°æ®åŒ…ï¼Œbiné•¿åº¦)
+        //MID_FLASH_E2P_Write(bin_message.bin_write_flash_addr, serial_data, bin_data_length); // å°†æ¥æ”¶åˆ°çš„å‡çº§æ–‡ä»¶å†™å…¥åˆ°Flashçš„å‡½æ•°
 
         bin_message.bin_write_flash_addr = bin_message.bin_write_flash_addr + bin_data_length;
 
-        // ¼ì²âÊÇ·ñ½ÓÊÜÍêËùÓĞÊı¾İ£¬Î´½ÓÊÕÍê³ÉÔòÇëÇóÏÂÒ»¶ÎÊı¾İ
+        // æ£€æµ‹æ˜¯å¦æ¥å—å®Œæ‰€æœ‰æ•°æ®ï¼Œæœªæ¥æ”¶å®Œæˆåˆ™è¯·æ±‚ä¸‹ä¸€æ®µæ•°æ®
         if (bin_message.bin_count != bin_message.bin_num) {
 
-             #error ´Ë´¦´®¿ÚÏòÈí¼ş·¢ËÍÇëÇóÏÂÒ»¶ÎÊı¾İĞÅºÅ
+             #error æ­¤å¤„ä¸²å£å‘è½¯ä»¶å‘é€è¯·æ±‚ä¸‹ä¸€æ®µæ•°æ®ä¿¡å·
 
 
         } else {
-            // ËùÓĞÊı¾İ¶¼ÒÑ½ÓÊÕ²¢Ğ´Èëµ½flash£¬½«execute_app_doneÖÃ1
+            // æ‰€æœ‰æ•°æ®éƒ½å·²æ¥æ”¶å¹¶å†™å…¥åˆ°flashï¼Œå°†execute_app_doneç½®1
             iap_flag.execute_app_done = 1;
             iap_flag.star_flag = 0;
 
-             #error ´Ë´¦´®¿ÚÏòÈí¼ş·¢ËÍÉı¼¶³É¹¦ĞÅºÅ
+             #error æ­¤å¤„ä¸²å£å‘è½¯ä»¶å‘é€å‡çº§æˆåŠŸä¿¡å·
 
         }
     }
