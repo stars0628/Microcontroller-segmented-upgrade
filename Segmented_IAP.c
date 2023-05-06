@@ -2,8 +2,7 @@
 #include "string.h"
 
 //有关串口和IAP的头文件
-#include "CommUART1.h"
-#include "IAP.h"
+
 
 
 //分段IAP相关值初始化
@@ -94,7 +93,7 @@ uint16_t CRC16(uint8_t *puchMsg, uint16_t usDataLen)
 }
 
 // 命令或bin文件判断并处理的简单实现
-// #error 可以将此函数放在串口接收中断中或保证串口接受完完整数据后运行，建议使用DMA串口
+ #error 可以将此函数放在串口接收中断中或保证串口接受完完整数据后运行，建议使用DMA串口
 void cmd_or_data_deal(uint8_t *serial_data, uint32_t length)
 {
     uint16_t crc_get = serial_data[length - 2] << 8 | serial_data[length - 1]; // 串口获得的crc
@@ -114,23 +113,14 @@ void cmd_or_data_deal(uint8_t *serial_data, uint32_t length)
                 bin_message.bin_num = (serial_data[3] << 8) | serial_data[4];//获取bin数量
                 iap_flag.star_flag = 1;
 
-                U1_TxBuffer[0] = 0x0a;
-                U1_TxBuffer[1] = 0x0b;
-                U1_TxBuffer[2] = 0x01;
-                U1_TxBuffer[3] = 0xb0;
-                U1_TxBuffer[4] = 0xa0;
-                DMA_send(5);
+#error 向上位机请求开始传输bin 发送0a 0b 01 b0 a0，也可完善相关代码
 
                 break;
             case 0x00: // 功能码00
                 iap_flag.star_flag = 0;
                 bin_message.bin_write_flash_addr = FLASH_APP1_ADDR;
-                U1_TxBuffer[0] = 0x0a;
-                U1_TxBuffer[1] = 0x0b;
-                U1_TxBuffer[2] = 0x00;
-                U1_TxBuffer[3] = 0xb0;
-                U1_TxBuffer[4] = 0xa0;
-                DMA_send(5);
+
+#error 可完善相关代码
 
                 break;
             }
@@ -141,7 +131,7 @@ void cmd_or_data_deal(uint8_t *serial_data, uint32_t length)
     }
 }
 
-// 此函数可单独使用，应放在串口接收中断中或保证串口接受完完整数据后运行
+#error 此函数可单独使用，应放在串口接收中断中或保证串口接受完完整数据后运行
 void Transmission_and_Upgrade(uint8_t *serial_data, uint32_t length) // 传入串口收到的数据和长度
 {
     uint16_t data_crc = 0;        // 收到的数据计算校验值
@@ -154,13 +144,8 @@ void Transmission_and_Upgrade(uint8_t *serial_data, uint32_t length) // 传入串口
         data_crc = CRC16(serial_data, serial_message.bin_get_length - 2);
         if (bin_message.bin_crc != data_crc) { // 计算出的校验值与获得的校验值不同，重新请求数据
 
-            // #error通过串口向软件发送信号请求重发本段数据
-            U1_TxBuffer[0] = 0x0a;
-            U1_TxBuffer[1] = 0x0b;
-            serial_data[2] = 0x00;
-            U1_TxBuffer[3] = 0xb0;
-            U1_TxBuffer[4] = 0xa0;
-            DMA_send(5);
+             #error 通过串口向软件发送信号请求重发本段数据
+
 
         } else {
             iap_flag.receive_bin_segment_done = 1;
@@ -174,34 +159,24 @@ void Transmission_and_Upgrade(uint8_t *serial_data, uint32_t length) // 传入串口
         bin_data_length = serial_message.bin_get_length - bin_message.other_message_length;
         serial_message.bin_get_totle_length += bin_data_length;
 
-        // #error在此处添加对flash操作的函数(传入参数)
-        MID_FLASH_E2P_Write(bin_message.bin_write_flash_addr, serial_data, bin_data_length); // 将接收到的升级文件写入到Flash的函数
+        #error 在此处添加对flash操作的函数(传入参数应有三个，地址，数据包，bin长度)
+        //MID_FLASH_E2P_Write(bin_message.bin_write_flash_addr, serial_data, bin_data_length); // 将接收到的升级文件写入到Flash的函数
 
         bin_message.bin_write_flash_addr = bin_message.bin_write_flash_addr + bin_data_length;
 
         // 检测是否接受完所有数据，未接收完成则请求下一段数据
         if (bin_message.bin_count != bin_message.bin_num) {
 
-            // #error 此处串口向软件发送请求下一段数据信号
-            U1_TxBuffer[0] = 0x0a;
-            U1_TxBuffer[1] = 0x0b;
-            U1_TxBuffer[2] = 0x01;
-            U1_TxBuffer[3] = 0xb0;
-            U1_TxBuffer[4] = 0xa0;
-            DMA_send(5);
+             #error 此处串口向软件发送请求下一段数据信号
+
 
         } else {
             // 所有数据都已接收并写入到flash，将execute_app_done置1
             iap_flag.execute_app_done = 1;
             iap_flag.star_flag = 0;
 
-            // #error 此处串口向软件发送升级成功信号
-            U1_TxBuffer[0] = 0x0a;
-            U1_TxBuffer[1] = 0x0b;
-            U1_TxBuffer[2] = 0x10;
-            U1_TxBuffer[3] = 0xb0;
-            U1_TxBuffer[4] = 0xa0;
-            DMA_send(5);
+             #error 此处串口向软件发送升级成功信号
+
         }
     }
 }
