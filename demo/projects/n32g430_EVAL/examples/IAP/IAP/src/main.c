@@ -34,9 +34,7 @@
 **/
 
 #include "main.h"
-#include "IAP.h"
-#include "CommUART1.h"
-#include "string.h"
+
 
 /**
 *\*\name    main.

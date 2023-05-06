@@ -42,7 +42,13 @@ extern "C" {
 #include "n32g430_rcc.h"
 #include "n32g430_usart.h"
 #include <stdio.h>
+#include "string.h"
+
+
 #include "Segmented_IAP.h"
+#include "IAP.h"
+#include "CommUART1.h"
+
 
 #define _USART1_UART4_
 // #define _USART2_UART3_
