@@ -13,6 +13,19 @@ Qt上位机源码
 
 ## 使用说明
 
-1. 具体说明见demo中的readme
+1. 具体说明见demo中的readme，该demo使用的是国民技术的N32G430芯片。
 2. Qt上位机编译后使用串口连接移植好IAP的单片机，选择升级文件（.bin）和保存路径（被分段的bin文件输出保存路径）后，点击升级则可以对单片机进行升级
 3. 该项目仅是一个可用的方式，只为了实现升级功能
+
+## Qt信息
+
+![image](https://user-images.githubusercontent.com/43928335/236725046-991ee450-f789-48d8-8176-8a20214d6338.png)
+
+## Qt软件使用
+1. 在单片机进入Bootload程序后，依照下图操作，软件上的进入升级模式按钮需要在APP中做了接收到升级命令后跳转到Bootload程序才可用，测试时可以让Bootload程序直接处于需要升级的状态
+![image](https://user-images.githubusercontent.com/43928335/236725930-0ac2061e-73c6-46f4-88b8-f86f14a2ccdc.png)
+
+在上图中，注释掉标志判断，取消注释if(0) {
+
+![image](https://user-images.githubusercontent.com/43928335/236725551-cc102276-2946-4738-a4a0-f4ebb39df13d.png)
+经测试，是可以升级成功的
