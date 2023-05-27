@@ -31,6 +31,8 @@ public:
 
     void serial_close();
 
+    void Change_the_Baud_in_IAP();
+
 private slots:
     void on_pushButton_4_clicked();
 
@@ -46,12 +48,11 @@ private slots:
 
     void on_pushButton_7_clicked();
 
-    void on_pushButton_3_clicked();
-
 private:
     Ui::MainWindow *ui;
     QSerialPort serial;
-    QTimer *mTime = new QTimer();
+    QTimer *mTime = new QTimer();//用于串口接收完整数据
+    QTimer *Time_wait = new QTimer();//用于发送升级数据后的等待时间
 
 };
 
