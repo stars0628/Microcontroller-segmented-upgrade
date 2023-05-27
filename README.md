@@ -29,5 +29,5 @@ Qt上位机源码
 ![image](https://user-images.githubusercontent.com/43928335/236725930-0ac2061e-73c6-46f4-88b8-f86f14a2ccdc.png)
 
 3. 经测试，是可以升级成功的
-![image](https://user-images.githubusercontent.com/43928335/236725551-cc102276-2946-4738-a4a0-f4ebb39df13d.png)
+![image](https://github.com/stars0628/Microcontroller-segmented-upgrade/assets/43928335/e80d4e55-f741-4c43-aaa4-3a8154fe5555)
 
