@@ -23,8 +23,9 @@ Qt上位机源码
 
 ## Qt软件使用
 1. 在单片机进入Bootload程序后，依照下图操作，软件上的进入升级模式按钮需要在APP中做了接收到升级命令后跳转到Bootload程序才可用，测试时可以让Bootload程序直接处于需要升级的状态
+![image](https://github.com/stars0628/Microcontroller-segmented-upgrade/assets/43928335/76f37857-1690-46ac-a747-36037d1c96f9)
 
-2. 在下图中，注释掉标志判断，取消注释if(0) {
+2. 在下图中，注释掉标志判断，取消注释"if(0) {"，可以让程序复位后一直运行在iap
 ![image](https://user-images.githubusercontent.com/43928335/236725930-0ac2061e-73c6-46f4-88b8-f86f14a2ccdc.png)
 
 3. 经测试，是可以升级成功的
