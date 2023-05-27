@@ -4,18 +4,19 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-int step = 0;                  // 记录发了多少部分bin文件
-uint16_t chunk_count_u16 = 0;  // 生成的bin文件数
-uint16_t update_error_count = 0;//记录升级错误数量
-QString selected_file = "";         // 选择bin文件路径
+int step = 0;                     // 记录发了多少部分bin文件
+uint16_t chunk_count_u16 = 0;     // 生成的bin文件数
+uint16_t update_error_count = 0;  // 记录升级错误数量
+QString selected_file = "";       // 选择bin文件路径
 QString srcDirPath;
+
+uint16_t crc16_modbus(uint8_t *data, uint32_t len);
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
     on_pushButton_4_clicked();
-
 
     // Get the path to the directory containing the executable
     QDir dir = QDir(QCoreApplication::applicationDirPath());
@@ -38,25 +39,25 @@ MainWindow::MainWindow(QWidget *parent)
         qDebug() << array;
         if (array == "0a0b01b0a0")  // 发送下一段
         {
-            Time_wait->stop();//结束定时器
+            Time_wait->stop();  // 结束定时器
             bin_num_str = bin_num_str.number(step);
             step++;
             readFile(srcDirPath + "/bin_part." + bin_num_str + ".bin");
             schedule = ((float)step / (float)chunk_count_u16) * 100.0;
             ui->progressBar->setValue(schedule);
-            Time_wait->start(3000);//设置3s定时器
+            Time_wait->start(3000);        // 设置3s定时器
         } else if (array == "0a0b00b0a0")  // 重发此段
         {
-            Time_wait->stop();//结束定时器
+            Time_wait->stop();  // 结束定时器
             step--;
             bin_num_str = bin_num_str.number(step);
             readFile(srcDirPath + "/bin_part." + bin_num_str + ".bin");
             step++;
             update_error_count++;
-            Time_wait->start(3000);//设置3s定时器
+            Time_wait->start(3000);        // 设置3s定时器
         } else if (array == "0a0b10b0a0")  // 升级成功
         {
-            Time_wait->stop();//结束定时器
+            Time_wait->stop();  // 结束定时器
             step = 0;
             ui->pushButton_5->setEnabled(true);
             ui->pushButton_6->setEnabled(true);
@@ -69,16 +70,30 @@ MainWindow::MainWindow(QWidget *parent)
         mTime->stop();
     });
 
-    //超时无应答视为发送失败，重发本段数据
+    // 超时无应答视为发送失败，重发本段数据
     connect(Time_wait, &QTimer::timeout, this, [=]() {
-        step--;
-        QString bin_num_str;
-        bin_num_str = bin_num_str.number(step);
-        readFile(srcDirPath + "/bin_part." + bin_num_str + ".bin");
-        step++;
-        update_error_count++;
-        ui->label_12->setText("本次升级错误计数" + QString::number(update_error_count));
-        Time_wait->stop();//结束定时器
+        if (step == 0) {  // step为0则意味着头数据没有发送成功
+            uint8_t num_h = chunk_count_u16 >> 8;
+            uint8_t num_l = chunk_count_u16 & 0xff;
+            uint8_t data[] = {0x0a, 0x0b, 0x11, num_h, num_l, 0xb0, 0xa0};
+            uint16_t crc_cmd = crc16_modbus(data, sizeof(data));
+            uint8_t crc_h = crc_cmd & 0xff;
+            uint8_t crc_l = crc_cmd >> 8;
+            uint8_t senddata[] = {0x0a, 0x0b, 0x11, num_h, num_l, 0xb0, 0xa0, crc_h, crc_l};
+            QByteArray sendData = QByteArray::fromRawData((char *)senddata, sizeof(senddata));
+            serial.write(sendData);
+            update_error_count++;
+            ui->label_12->setText("本次升级错误计数" + QString::number(update_error_count));
+        } else {  // 重发bin数据
+            step--;
+            QString bin_num_str;
+            bin_num_str = bin_num_str.number(step);
+            readFile(srcDirPath + "/bin_part." + bin_num_str + ".bin");
+            step++;
+            update_error_count++;
+            ui->label_12->setText("本次升级错误计数" + QString::number(update_error_count));
+            // Time_wait->stop();//结束定时器
+        }
     });
 }
 
@@ -280,6 +295,7 @@ void MainWindow::on_pushButton_5_clicked()  // 开始升级
         int size = bin_size.toInt() - 2;
         Bin_Deal(selected_file, size, srcDirPath);
 
+        // 头数据，即bin文件的信息
         uint8_t num_h = chunk_count_u16 >> 8;
         uint8_t num_l = chunk_count_u16 & 0xff;
         uint8_t data[] = {0x0a, 0x0b, 0x11, num_h, num_l, 0xb0, 0xa0};
@@ -297,6 +313,8 @@ void MainWindow::on_pushButton_5_clicked()  // 开始升级
         ui->pushButton->setEnabled(false);
         ui->pushButton_4->setEnabled(false);
         ui->size->setEnabled(false);
+
+        Time_wait->start(3000);  // 设置3s等待定时器
     } else {
         QMessageBox::warning(this, tr("警告"), tr("未选择升级文件"), QMessageBox::Close);
     }
@@ -319,7 +337,7 @@ QByteArray MainWindow::readFile(const QString &filePath)
 
 void MainWindow::on_pushButton_6_clicked()  // 进入升级模式
 {
-    //重置为app的波特率
+    // 重置为app的波特率
     serial.close();
     QString new_baud_str = ui->BaudBox->currentText();
     if (new_baud_str == "4800") {
@@ -344,7 +362,7 @@ void MainWindow::on_pushButton_6_clicked()  // 进入升级模式
     serial.write(sendData);
 }
 
-void MainWindow::on_pushButton_7_clicked()  //复位软件
+void MainWindow::on_pushButton_7_clicked()  // 复位软件
 {
     ui->pushButton_5->setEnabled(true);
     ui->pushButton_6->setEnabled(true);
